@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import * as bcrypt from 'bcryptjs';
 
@@ -17,7 +17,7 @@ export class User {
 export class AuthService {
   constructor(@InjectKnex() private readonly db: Knex) { }
 
-  async createUser({ email, password, first_name, last_name }) {
+  async createUser({ email, password, first_name, last_name }): Promise<User> {
     const userExists = await this.doesUserExist(email);
     if (userExists) {
       throw new HttpException('User exists', HttpStatus.CONFLICT);
@@ -26,7 +26,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashed_password = await bcrypt.hash(password, salt);
 
-    const result: User = await this.db(USERS_TABLE_NAME).insert({
+    const result: User[] = await this.db(USERS_TABLE_NAME).insert({
       email,
       hashed_password,
       first_name,
@@ -34,7 +34,11 @@ export class AuthService {
     },
       ['id', 'email', 'first_name', 'last_name']);
 
-    return result[0] ?? false;
+    if (result.length > 0) {
+      return result[0];
+    } else {
+      throw new InternalServerErrorException();
+    }
   }
 
   async doesUserExist(email: string): Promise<any> {

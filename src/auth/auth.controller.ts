@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
 
-import { AuthService } from './auth.service';
+import { AuthService, User } from './auth.service';
 import UserCreateDto from './Dto/user.create.dto';
 
 @Controller('auth')
@@ -9,14 +9,14 @@ export class AuthController {
 
   @Post('user')
   async createUser(@Body() user: UserCreateDto) {
-    let result;
+    let result: User;
     try {
       result = await this.authService.createUser(user);
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;
       } else {
-        throw new HttpException('Error', 400);
+        throw new HttpException('Error', 500);
       }
     }
 
