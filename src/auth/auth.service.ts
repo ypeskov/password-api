@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import * as bcrypt from 'bcryptjs';
+import { UserCredentialsDto } from './Dto/user-credentials.dto';
 
 const USERS_TABLE_NAME = 'users';
 
@@ -9,6 +10,7 @@ export class User {
   email: string;
   first_name: string;
   last_name: string;
+  hashed_password?: string;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -54,4 +56,22 @@ export class AuthService {
       return null;
     }
   }
+
+  async validateUser(email: string, pass: string): Promise<User | null> {
+    const user = await this.getUserByEmail(email);
+
+    if (user) {
+      const {hashed_password, ...result} = user;
+      return result;
+    }
+
+    return null;
+  }
+
+  // async getUserToken(userCreds: UserCredentialsDto) {
+  //   const user: User | null = await this.getUserByEmail(userCreds.email);
+  //   if (!user) {
+  //     throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+  //   }
+  // }
 }

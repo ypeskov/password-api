@@ -1,7 +1,9 @@
-import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Request, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService, User } from './auth.service';
 import UserCreateDto from './Dto/user.create.dto';
+import { LocalAuthGuard } from './local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +14,8 @@ export class AuthController {
     let result: User;
     try {
       result = await this.authService.createUser(user);
+
+      return result;
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;
@@ -19,7 +23,11 @@ export class AuthController {
         throw new HttpException('Error', 500);
       }
     }
+  }
 
-    return result;
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  async login(@Request() req) {
+    return req.user;
   }
 }
