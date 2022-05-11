@@ -59,10 +59,13 @@ export class AuthService {
     }
   }
 
-  async validateUser(email: string, pass: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.getUserByEmail(email);
 
     if (user) {
+      const isPasswordCorrect = await bcrypt.compare(password, user.hashed_password);
+      if (!isPasswordCorrect) { return null; }
+
       const { hashed_password, ...result } = user;
       return result;
     }
@@ -71,7 +74,12 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const payload = { email: user.email, sub: user.id, first_name: user.first_name, last_name: user.last_name };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name
+    };
 
     return {
       access_token: this.jwtService.sign(payload),
