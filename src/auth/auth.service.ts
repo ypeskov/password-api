@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import * as bcrypt from 'bcryptjs';
-import { UserCredentialsDto } from './Dto/user-credentials.dto';
+import { JwtService } from '@nestjs/jwt';
 
 const USERS_TABLE_NAME = 'users';
 
@@ -17,7 +17,9 @@ export class User {
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectKnex() private readonly db: Knex) { }
+  constructor(
+    @InjectKnex() private readonly db: Knex,
+    private jwtService: JwtService) { }
 
   async createUser({ email, password, first_name, last_name }): Promise<User> {
     const userExists = await this.doesUserExist(email);
@@ -61,17 +63,18 @@ export class AuthService {
     const user = await this.getUserByEmail(email);
 
     if (user) {
-      const {hashed_password, ...result} = user;
+      const { hashed_password, ...result } = user;
       return result;
     }
 
     return null;
   }
 
-  // async getUserToken(userCreds: UserCredentialsDto) {
-  //   const user: User | null = await this.getUserByEmail(userCreds.email);
-  //   if (!user) {
-  //     throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
-  //   }
-  // }
+  async login(user: User) {
+    const payload = { email: user.email, sub: user.id };
+    
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
 }
