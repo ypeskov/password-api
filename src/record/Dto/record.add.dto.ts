@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class RecordDto {
   @IsString()
@@ -6,4 +6,8 @@ export class RecordDto {
 
   @IsString()
   type: string;
+
+  @IsNumber()
+  @IsOptional()
+  folder_id?: number;
 }

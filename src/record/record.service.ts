@@ -43,6 +43,7 @@ export class RecordService {
       .insert<SecureRecord[]>({
         name,
         user_id: user.id,
+        folder_id: record.folder_id,
         record_type_id: foundType.id,
         created_at: date,
         updated_at: date
