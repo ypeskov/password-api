@@ -1,15 +1,13 @@
 import { Knex } from "knex";
 
-const TABLE_NAME = 'folders';
-
+const TABLE_NAME = 'record_types';
 
 export async function up(knex: Knex): Promise<void> {
   console.log(`Starting creatin [${TABLE_NAME}] table.`);
 
   await knex.schema.createTable(TABLE_NAME, (table: Knex.CreateTableBuilder) => {
     table.increments('id');
-    table.string('name');
-    table.integer('user_id').references('users.id').onDelete('CASCADE').onUpdate('CASCADE');
+    table.string('type').unique();
     table.timestamps(true);
   });
   
