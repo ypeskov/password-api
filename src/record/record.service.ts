@@ -17,7 +17,7 @@ const RECORD_TYPES = [
 export class RecordService {
   constructor(@InjectKnex() private db: Knex) { }
 
-  async addRecord(record: RecordDto) {
+  async addRecord(record: RecordDto, user) {
     const { type, name } = record;
 
     if (!RECORD_TYPES.includes(type)) {
@@ -32,14 +32,18 @@ export class RecordService {
       throw new HttpException('Bad request', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    const date = new Date();
+
     const res = await this
       .db(RECORD_TABLE_NAME)
       .returning('*')
       .insert<SecureRecord[]>({
         name,
-        record_type_id: foundType.id
+        user_id: user.id,
+        record_type_id: foundType.id,
+        created_at: date,
+        updated_at: date
       });
-    console.log(res);
 
     if (res.length !== 1) {
       throw new HttpException('Bad request', HttpStatus.INTERNAL_SERVER_ERROR);
